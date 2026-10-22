@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Stav objednávek - Restaurace</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f9; }
+        h1 { color: #333; }
+        button { background: #28a745; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-bottom: 20px; }
+        button:hover { background: #218838; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: white; margin-bottom: 10px; padding: 15px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; }
+        .status { font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <h1>Přehled objednávek v restauraci</h1>
+    <button onclick="createNewOrder()">Vytvořit novou objednávku</button>
+
+    <ul id="orders-list">
+        <li>Načítám objednávky...</li>
+    </ul>
+
+    <script>
+        async function createNewOrder() {
+            try {
+                const response = await fetch('/create-order', { method: 'POST' });
+                const data = await response.json();
+                fetchOrders();
+            } catch (error) {
+                console.error('Chyba při vytváření objednávky:', error);
+            }
+        }
+
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/orders');
+                const orders = await response.json();
+                
+                const listElement = document.getElementById('orders-list');
+                listElement.innerHTML = '';
+
+                const keys = Object.keys(orders);
+                if (keys.length === 0) {
+                    listElement.innerHTML = '<li>Zatím nejsou evidovány žádné objednávky. Klikněte na tlačítko výše.</li>';
+                    return;
+                }
+
+                keys.forEach(id => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>Objednávka: <strong>${id}</strong></span> <span class="status">${orders[id]}</span>`;
+                    listElement.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Chyba při načítání objednávek:', error);
+            }
+        }
+
+        fetchOrders();
+        setInterval(fetchOrders, 1000);
+    </script>
+</body>
+</html>
